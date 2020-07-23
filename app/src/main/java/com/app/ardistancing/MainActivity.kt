@@ -3,7 +3,6 @@ package com.app.ardistancing
 import android.graphics.Point
 import android.net.Uri
 import android.os.Bundle
-import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -15,7 +14,6 @@ import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
-import com.google.ar.sceneform.ux.TransformableNode
 
 
 class MainActivity : AppCompatActivity() {
@@ -54,15 +52,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTracking(): Boolean {
-        val frame: Frame? = fragment!!.arSceneView.arFrame
+        val frame: Frame? = fragment.arSceneView.arFrame
         val wasTracking = isTracking
         isTracking = frame != null &&
-                frame.getCamera().getTrackingState() === TrackingState.TRACKING
+                frame.camera.trackingState === TrackingState.TRACKING
         return isTracking != wasTracking
     }
 
     private fun updateHitTest(): Boolean {
-        val frame: Frame? = fragment!!.arSceneView.arFrame
+        val frame: Frame? = fragment.arSceneView.arFrame
         val pt = getScreenCenter()
         val hits: List<HitResult>
         val wasHitting = isHitting
@@ -72,7 +70,7 @@ class MainActivity : AppCompatActivity() {
             for (hit in hits) {
                 val trackable = hit.trackable
                 if (trackable is Plane &&
-                    (trackable as Plane).isPoseInPolygon(hit.hitPose)
+                    trackable.isPoseInPolygon(hit.hitPose)
                 ) {
                     isHitting = true
                     break
@@ -84,7 +82,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getScreenCenter(): Point {
         val vw: View = findViewById(android.R.id.content)
-        return Point(vw.getWidth() / 2, vw.width)
+        return Point(vw.width / 2, vw.width)
     }
 
     private fun createRing(anchor: Anchor) {
@@ -93,7 +91,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         val url =
-            "https://firebasestorage.googleapis.com/v0/b/ilead-d2f48.appspot.com/o/yellowring.glb?alt=media&token=4e600211-74ab-4a73-992e-ad88838ad986";
+            "https://firebasestorage.googleapis.com/v0/b/ilead-d2f48.appspot.com/o/yellowring.glb?alt=media&token=4e600211-74ab-4a73-992e-ad88838ad986"
 
         ModelRenderable.builder()
             //.setSource(this, R.raw.andy)
@@ -109,7 +107,7 @@ class MainActivity : AppCompatActivity() {
             .thenAccept { modelRenderable: ModelRenderable? ->
                 andyRenderable = modelRenderable!!
                 loadModel(modelRenderable, anchor)
-            }.exceptionally { exception ->
+            }.exceptionally {
                 Toast.makeText(this, "something went wrong", Toast.LENGTH_SHORT).show()
                 return@exceptionally null
             }
@@ -139,10 +137,10 @@ class MainActivity : AppCompatActivity() {
         // Create the Anchor.
         val anchorNode =
             AnchorNode(anchor)
-        anchorNode.setParent(fragment.getArSceneView().getScene())
+        anchorNode.setParent(fragment.arSceneView.scene)
         placedAnchorNodes.add(anchorNode)
-        val pose = fragment.getArSceneView().arFrame!!.camera.pose
-        var cur: Vector3 = Vector3()
+        val pose = fragment.arSceneView.arFrame!!.camera.pose
+        var cur = Vector3()
         val worldPosition = anchorNode.worldPosition
         pose?.let {
             cur = Vector3(pose.tx(), worldPosition.y, pose.tz())
