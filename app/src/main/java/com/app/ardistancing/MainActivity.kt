@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
     private var isTracking = false
     private var isHitting = false
     var count = 0;
-    var andyRenderable: ModelRenderable?=null
+    var andyRenderable: ModelRenderable? = null
     private val placedAnchorNodes = ArrayList<AnchorNode>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,14 +82,14 @@ class MainActivity : AppCompatActivity() {
         val trackingChanged: Boolean = updateTracking()
         val contentView: View = findViewById(android.R.id.content)
         if (trackingChanged) {
-            //clear()
+            clear()
             updateAnchorNode()
         }
         if (isTracking) {
             val hitTestChanged: Boolean = updateHitTest()
             if (hitTestChanged) {
 
-              //  clear()
+                  clear()
                 /* pointer.isEnabled = isHitting
                  contentView.invalidate()*/
                 updateAnchorNode()
@@ -145,11 +145,11 @@ class MainActivity : AppCompatActivity() {
               }*/
 
         if (andyRenderable != null) {
-           // loadModel(andyRenderable, anchor)
+            loadModel(andyRenderable, anchor)
             return
         }
         val url =
-            "https://firebasestorage.googleapis.com/v0/b/ilead-d2f48.appspot.com/o/ringwhite.glb?alt=media&token=79524ef4-8f01-4af7-b5ab-277a4de00d57";
+            "https://firebasestorage.googleapis.com/v0/b/ilead-d2f48.appspot.com/o/yellowring.glb?alt=media&token=4e600211-74ab-4a73-992e-ad88838ad986";
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
         ModelRenderable.builder()
@@ -162,7 +162,7 @@ class MainActivity : AppCompatActivity() {
                 )
                     //.setScale(0.0254f)
                     // Scale the original model to 50%.
-                  // .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+                    // .setRecenterMode(RenderableSource.RecenterMode.ROOT)
                     .build()
             )
             .setRegistryId(url)
@@ -200,25 +200,29 @@ class MainActivity : AppCompatActivity() {
         anchor: Anchor
     ) {
 
-
         // Create the Anchor.
         val anchorNode =
             AnchorNode(anchor)
         anchorNode.setParent(fragment.getArSceneView().getScene())
         placedAnchorNodes.add(anchorNode)
-        /* val pose = fragment.getArSceneView().arFrame!!.camera.pose
-         var cur: Vector3=Vector3()
-         pose?.let {
-             cur = Vector3(pose.tx(), pose.ty(), pose.tz())
-         }
-         anchorNode.worldPosition = cur*/
+        val pose = fragment.getArSceneView().arFrame!!.camera.pose
+        var cur: Vector3 = Vector3()
+        val worldPosition = anchorNode.worldPosition
+
+        pose?.let {
+            cur = Vector3(pose.tx(), worldPosition.y, pose.tz())
+        }
+        val newpos = Vector3(0f, worldPosition.y, worldPosition.z)
+       // anchorNode.worldPosition = newpos
         // Create the transformable model and add it to the anchor.
 
         // Create the transformable model and add it to the anchor.
-        val model = TransformableNode(fragment.getTransformationSystem())
+       // val model = TransformableNode(fragment.getTransformationSystem())
+        val model=Node()
         model.setParent(anchorNode)
         model.renderable = modelRenderable
-        model.select()
+        model.worldPosition = cur
+       // model.select()
     }
 
     private fun clear() {
@@ -228,12 +232,12 @@ class MainActivity : AppCompatActivity() {
             anchorNode.anchor!!.detach()
             anchorNode.setParent(null)
 
-          /*  val pose = fragment.getArSceneView().arFrame!!.camera.pose
-            var cur: Vector3=Vector3()
-            pose?.let {
-                cur = Vector3(pose.tx(), pose.ty(), pose.tz())
-            }
-            anchorNode.worldPosition = cur*/
+            /*  val pose = fragment.getArSceneView().arFrame!!.camera.pose
+              var cur: Vector3=Vector3()
+              pose?.let {
+                  cur = Vector3(pose.tx(), pose.ty(), pose.tz())
+              }
+              anchorNode.worldPosition = cur*/
         }
     }
 }
