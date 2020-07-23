@@ -7,19 +7,15 @@ import androidx.appcompat.app.AppCompatActivity
 
 
 class SplashScreen : AppCompatActivity() {
-    private val SPLASH_TIME_OUT: Long = 700
+    private val timeout: Long = 700
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash_screen)
-
-        Handler().postDelayed(Runnable { // This method will be executed once the timer is over
-            // Start your app main activity
+        Handler().postDelayed(Runnable {
             val i = Intent(this, MainActivity::class.java)
             startActivity(i)
-
-            // close this activity
             finish()
-        }, SPLASH_TIME_OUT)
+        }, timeout)
     }
 }
