@@ -20,12 +20,9 @@ import com.google.ar.sceneform.ux.TransformableNode
 
 class MainActivity : AppCompatActivity() {
     private lateinit var fragment: ArFragment
-
-    private val pointer = PointerDrawable()
     private var isTracking = false
     private var isHitting = false
-    var count = 0;
-    var andyRenderable: ModelRenderable? = null
+    private var andyRenderable: ModelRenderable? = null
     private val placedAnchorNodes = ArrayList<AnchorNode>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,50 +34,12 @@ class MainActivity : AppCompatActivity() {
             .addOnUpdateListener { frameTime: FrameTime? ->
                 fragment.onUpdate(frameTime)
                 onUpdate()
-
-                /*val frame: Frame? = fragment.arSceneView.getArFrame()
-                if (frame == null) {
-                    return@addOnUpdateListener
-                }
-
-                for (plane in frame.getUpdatedTrackables(
-                    Plane::class.java
-                )) {
-                    if (plane.trackingState == TrackingState.TRACKING) {
-                        if (count == 0) {
-                            count++;
-                            updateAnchorNode()
-                        }
-                    }
-                }*/
             }
-        /* fragment.setOnTapArPlaneListener(
-             { hitResult: HitResult, plane: Plane?, motionEvent: MotionEvent? ->
-                 if (andyRenderable == null) {
-                     return@setOnTapArPlaneListener
-                 }
-                 val modelRenderable: ModelRenderable = andyRenderable.makeCopy()
 
-                 // Create the Anchor.
-                 val anchor = hitResult.createAnchor()
-                 val anchorNode =
-                     AnchorNode(anchor)
-                 anchorNode.setParent(fragment.getArSceneView().getScene())
-                 val node = Node()
-
-
-                 // Create the transformable andy and add it to the anchor.
-                 val andy =
-                     TransformableNode(fragment.getTransformationSystem())
-                 andy.setParent(anchorNode)
-                 andy.renderable = andyRenderable
-                 andy.select()
-             })*/
     }
 
     private fun onUpdate() {
         val trackingChanged: Boolean = updateTracking()
-        val contentView: View = findViewById(android.R.id.content)
         if (trackingChanged) {
             clear()
             updateAnchorNode()
@@ -88,10 +47,7 @@ class MainActivity : AppCompatActivity() {
         if (isTracking) {
             val hitTestChanged: Boolean = updateHitTest()
             if (hitTestChanged) {
-
-                  clear()
-                /* pointer.isEnabled = isHitting
-                 contentView.invalidate()*/
+                clear()
                 updateAnchorNode()
             }
         }
@@ -132,26 +88,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createRing(anchor: Anchor) {
-        /*  ModelRenderable.builder().setSource(
-              this,
-              Uri.parse("https://firebasestorage.googleapis.com/v0/b/pf-asset-holder.appspot.com/o/8nov19%2Fmodel_3.glb?alt=media&token=baef2962-5ebc-4d17-bdb3-ed99e16da428")
-          ).setRegistryId(123)
-              .build()
-              .thenAccept { modelRenderable: ModelRenderable? ->
-                  loadModel(modelRenderable, anchor)
-              }.exceptionally { exception ->
-                  Toast.makeText(this, "something wrong", Toast.LENGTH_SHORT).show()
-                  return@exceptionally null
-              }*/
-
         if (andyRenderable != null) {
             loadModel(andyRenderable, anchor)
             return
         }
         val url =
             "https://firebasestorage.googleapis.com/v0/b/ilead-d2f48.appspot.com/o/yellowring.glb?alt=media&token=4e600211-74ab-4a73-992e-ad88838ad986";
-        // When you build a Renderable, Sceneform loads its resources in the background while returning
-        // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
+
         ModelRenderable.builder()
             //.setSource(this, R.raw.andy)
             .setSource(
@@ -159,27 +102,20 @@ class MainActivity : AppCompatActivity() {
                     this,
                     Uri.parse(url),
                     RenderableSource.SourceType.GLB
-                )
-                    //.setScale(0.0254f)
-                    // Scale the original model to 50%.
-                    // .setRecenterMode(RenderableSource.RecenterMode.ROOT)
-                    .build()
+                ).build()
             )
             .setRegistryId(url)
             .build()
             .thenAccept { modelRenderable: ModelRenderable? ->
-                Toast.makeText(this, "something Correct", Toast.LENGTH_SHORT).show()
-
                 andyRenderable = modelRenderable!!
                 loadModel(modelRenderable, anchor)
             }.exceptionally { exception ->
-                Toast.makeText(this, "something wrong", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "something went wrong", Toast.LENGTH_SHORT).show()
                 return@exceptionally null
             }
     }
 
     private fun updateAnchorNode() {
-        Toast.makeText(this, "updateAnchorNode Correct", Toast.LENGTH_SHORT).show()
         val frame = fragment.arSceneView.arFrame
         val point = getScreenCenter()
         //val point = Point(0, 0)
@@ -208,21 +144,14 @@ class MainActivity : AppCompatActivity() {
         val pose = fragment.getArSceneView().arFrame!!.camera.pose
         var cur: Vector3 = Vector3()
         val worldPosition = anchorNode.worldPosition
-
         pose?.let {
             cur = Vector3(pose.tx(), worldPosition.y, pose.tz())
         }
-        val newpos = Vector3(0f, worldPosition.y, worldPosition.z)
-       // anchorNode.worldPosition = newpos
-        // Create the transformable model and add it to the anchor.
-
-        // Create the transformable model and add it to the anchor.
-       // val model = TransformableNode(fragment.getTransformationSystem())
-        val model=Node()
+        val model = Node()
         model.setParent(anchorNode)
         model.renderable = modelRenderable
         model.worldPosition = cur
-       // model.select()
+        // model.select()
     }
 
     private fun clear() {
@@ -231,13 +160,6 @@ class MainActivity : AppCompatActivity() {
             anchorNode.isEnabled = false
             anchorNode.anchor!!.detach()
             anchorNode.setParent(null)
-
-            /*  val pose = fragment.getArSceneView().arFrame!!.camera.pose
-              var cur: Vector3=Vector3()
-              pose?.let {
-                  cur = Vector3(pose.tx(), pose.ty(), pose.tz())
-              }
-              anchorNode.worldPosition = cur*/
         }
     }
 }
