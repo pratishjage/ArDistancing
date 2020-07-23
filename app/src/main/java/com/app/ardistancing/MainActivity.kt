@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         val url =
-            "https://firebasestorage.googleapis.com/v0/b/ilead-d2f48.appspot.com/o/yellowring.glb?alt=media&token=4e600211-74ab-4a73-992e-ad88838ad986"
+            "https://firebasestorage.googleapis.com/v0/b/ilead-d2f48.appspot.com/o/yellowring.glb?alt=media&token=758995f8-12fc-4bc1-96c2-2e514150ab61"
 
         ModelRenderable.builder()
             //.setSource(this, R.raw.andy)
@@ -149,7 +149,6 @@ class MainActivity : AppCompatActivity() {
         model.setParent(anchorNode)
         model.renderable = modelRenderable
         model.worldPosition = cur
-        // model.select()
     }
 
     private fun clear() {
