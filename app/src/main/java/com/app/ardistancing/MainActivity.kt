@@ -14,6 +14,7 @@ import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
+import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -33,6 +34,8 @@ class MainActivity : AppCompatActivity() {
                 fragment.onUpdate(frameTime)
                 onUpdate()
             }
+
+        ivBackBtn.setOnClickListener { onBackPressed() }
 
     }
 
