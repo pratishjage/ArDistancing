@@ -19,9 +19,9 @@
 
   <ImageView
       android:id="@+id/ivBackBtn"
-      android:layout_width="50dp"
-      android:layout_height="50dp"
-      android:layout_marginStart="24dp"
+      android:layout_width="30dp"
+      android:layout_height="30dp"
+      android:layout_marginStart="16dp"
       android:layout_marginTop="24dp"
       app:layout_constraintBottom_toBottomOf="@+id/sceneform_fragment"
       app:layout_constraintEnd_toEndOf="parent"
@@ -30,5 +30,21 @@
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintVertical_bias="0.0"
       app:srcCompat="@drawable/ic_baseline_arrow_back_24" />
+
+  <TextView
+      android:id="@+id/textView3"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="24dp"
+      android:layout_marginEnd="16dp"
+      android:text="2m"
+      android:textColor="#FFFFFF"
+      android:padding="4dp"
+      android:background="@drawable/dotted"
+      android:textSize="18sp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
