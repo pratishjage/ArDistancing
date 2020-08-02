@@ -1,2 +1,2 @@
 # ArDistancing
-Ar Social Distancing Android App
+A Social Distancing Android App in Augented Reality
