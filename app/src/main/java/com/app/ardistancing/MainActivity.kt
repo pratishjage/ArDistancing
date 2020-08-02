@@ -1,64 +1,69 @@
 package com.app.ardistancing
 
 import android.graphics.Point
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.ar.core.Frame
-import com.google.ar.core.HitResult
-import com.google.ar.core.Plane
-import com.google.ar.core.TrackingState
+import com.google.ar.core.*
+import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.FrameTime
+import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.assets.RenderableSource
+import com.google.ar.sceneform.math.Vector3
+import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
+import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
-    private var fragment: ArFragment? = null
-
-    private val pointer = PointerDrawable()
+    private lateinit var fragment: ArFragment
     private var isTracking = false
     private var isHitting = false
+    private var andyRenderable: ModelRenderable? = null
+    private val placedAnchorNodes = ArrayList<AnchorNode>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         fragment = supportFragmentManager.findFragmentById(R.id.sceneform_fragment) as ArFragment
-        fragment!!.arSceneView.scene
+
+        fragment.arSceneView.scene
             .addOnUpdateListener { frameTime: FrameTime? ->
-                fragment!!.onUpdate(frameTime)
+                fragment.onUpdate(frameTime)
                 onUpdate()
             }
+
+        ivBackBtn.setOnClickListener { onBackPressed() }
+
     }
 
     private fun onUpdate() {
         val trackingChanged: Boolean = updateTracking()
-        val contentView: View = findViewById(android.R.id.content)
         if (trackingChanged) {
-            if (isTracking) {
-                contentView.getOverlay().add(pointer)
-            } else {
-                contentView.getOverlay().remove(pointer)
-            }
-            contentView.invalidate()
+            clear()
+            updateAnchorNode()
         }
         if (isTracking) {
             val hitTestChanged: Boolean = updateHitTest()
             if (hitTestChanged) {
-                pointer.isEnabled = isHitting
-                contentView.invalidate()
+                clear()
+                updateAnchorNode()
             }
         }
     }
 
     private fun updateTracking(): Boolean {
-        val frame: Frame? = fragment!!.arSceneView.arFrame
+        val frame: Frame? = fragment.arSceneView.arFrame
         val wasTracking = isTracking
         isTracking = frame != null &&
-                frame.getCamera().getTrackingState() === TrackingState.TRACKING
+                frame.camera.trackingState === TrackingState.TRACKING
         return isTracking != wasTracking
     }
 
     private fun updateHitTest(): Boolean {
-        val frame: Frame? = fragment!!.arSceneView.arFrame
+        val frame: Frame? = fragment.arSceneView.arFrame
         val pt = getScreenCenter()
         val hits: List<HitResult>
         val wasHitting = isHitting
@@ -68,7 +73,7 @@ class MainActivity : AppCompatActivity() {
             for (hit in hits) {
                 val trackable = hit.trackable
                 if (trackable is Plane &&
-                    (trackable as Plane).isPoseInPolygon(hit.hitPose)
+                    trackable.isPoseInPolygon(hit.hitPose)
                 ) {
                     isHitting = true
                     break
@@ -80,6 +85,81 @@ class MainActivity : AppCompatActivity() {
 
     private fun getScreenCenter(): Point {
         val vw: View = findViewById(android.R.id.content)
-        return Point(vw.getWidth() / 2, vw.getHeight() / 2)
+        return Point(vw.width / 2, vw.width)
+    }
+
+    private fun createRing(anchor: Anchor) {
+        if (andyRenderable != null) {
+            loadModel(andyRenderable, anchor)
+            return
+        }
+        val url =
+            "https://firebasestorage.googleapis.com/v0/b/ilead-d2f48.appspot.com/o/yellowring.glb?alt=media&token=758995f8-12fc-4bc1-96c2-2e514150ab61"
+
+        ModelRenderable.builder()
+            //.setSource(this, R.raw.andy)
+            .setSource(
+                this, RenderableSource.builder().setSource(
+                    this,
+                    Uri.parse(url),
+                    RenderableSource.SourceType.GLB
+                ).build()
+            )
+            .setRegistryId(url)
+            .build()
+            .thenAccept { modelRenderable: ModelRenderable? ->
+                andyRenderable = modelRenderable!!
+                loadModel(modelRenderable, anchor)
+            }.exceptionally {
+                Toast.makeText(this, "something went wrong", Toast.LENGTH_SHORT).show()
+                return@exceptionally null
+            }
+    }
+
+    private fun updateAnchorNode() {
+        val frame = fragment.arSceneView.arFrame
+        val point = getScreenCenter()
+        //val point = Point(0, 0)
+        if (frame != null) {
+            val hits = frame.hitTest(point.x.toFloat(), point.y.toFloat())
+            for (hit in hits) {
+                val trackable = hit.trackable
+                if (trackable is Plane && trackable.isPoseInPolygon(hit.hitPose)) {
+                    createRing(hit.createAnchor())
+                    break
+                }
+            }
+        }
+    }
+
+    private fun loadModel(
+        modelRenderable: ModelRenderable?,
+        anchor: Anchor
+    ) {
+
+        // Create the Anchor.
+        val anchorNode =
+            AnchorNode(anchor)
+        anchorNode.setParent(fragment.arSceneView.scene)
+        placedAnchorNodes.add(anchorNode)
+        val pose = fragment.arSceneView.arFrame!!.camera.pose
+        var cur = Vector3()
+        val worldPosition = anchorNode.worldPosition
+        pose?.let {
+            cur = Vector3(pose.tx(), worldPosition.y, pose.tz())
+        }
+        val model = Node()
+        model.setParent(anchorNode)
+        model.renderable = modelRenderable
+        model.worldPosition = cur
+    }
+
+    private fun clear() {
+        for (anchorNode in placedAnchorNodes) {
+            fragment.arSceneView.scene.removeChild(anchorNode)
+            anchorNode.isEnabled = false
+            anchorNode.anchor!!.detach()
+            anchorNode.setParent(null)
+        }
     }
 }
